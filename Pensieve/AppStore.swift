@@ -74,6 +74,12 @@ final class AppStore: ObservableObject {
     }
 
     func selectFolder(_ url: URL) {
+        guard url.startAccessingSecurityScopedResource() else {
+            errorMessage = "无法取得文件夹访问权限，请重新选择。"
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+
         do {
             let bookmark = try url.bookmarkData(
                 options: .minimalBookmark,
@@ -126,15 +132,24 @@ final class AppStore: ObservableObject {
         saveState()
     }
 
-    func toggleTag(_ tag: String) {
-        guard let card = currentCard else { return }
-        var value = metadata(for: card.id)
-        if value.tags.contains(tag) {
-            value.tags.remove(tag)
-        } else {
-            value.tags.insert(tag)
+    func applyTagAndAdvance(_ tag: String) {
+        guard let card = currentCard else {
+            saveState()
+            return
         }
+
+        var value = metadata(for: card.id)
+        let wasUnseen = value.classification == .unseen
+        value.tags.insert(tag)
+        value.lastViewedAt = Date()
+
+        if wasUnseen {
+            value.classification = .reviewed
+            persisted.newCardsSinceReplay += 1
+        }
+
         persisted.metadata[card.id] = value
+        advance(after: card.id)
         saveState()
     }
 
@@ -145,8 +160,7 @@ final class AppStore: ObservableObject {
             persisted.customTags.append(name)
             persisted.customTags.sort { $0.localizedStandardCompare($1) == .orderedAscending }
         }
-        toggleTag(name)
-        saveState()
+        applyTagAndAdvance(name)
     }
 
     func addReflection(_ rawText: String) {

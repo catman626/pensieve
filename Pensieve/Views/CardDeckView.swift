@@ -1,12 +1,22 @@
 import SwiftUI
 import UIKit
 
+struct CardTagAction: Equatable {
+    let id = UUID()
+    let tag: String
+    let cardID: String
+}
+
 struct CardDeckView: View {
     @EnvironmentObject private var store: AppStore
     let card: NoteCard
+    let tagAction: CardTagAction?
+    let onTagAnimationCompleted: (CardTagAction) -> Void
 
     @State private var horizontalOffset: CGFloat = 0
+    @State private var verticalOffset: CGFloat = 0
     @State private var isCommittingAction = false
+    @State private var isTagExit = false
 
     var body: some View {
         ZStack {
@@ -22,17 +32,44 @@ struct CardDeckView: View {
                     .padding(24)
             }
         }
-        .offset(x: horizontalOffset)
+        .offset(x: horizontalOffset, y: verticalOffset)
         .rotationEffect(.degrees(Double(horizontalOffset / 32)))
-        .opacity(isCommittingAction ? 0.25 : 1)
+        .opacity(isCommittingAction && !isTagExit ? 0.25 : 1)
         .simultaneousGesture(horizontalSwipe)
+        .onChange(of: tagAction?.id) {
+            animateTagExitIfNeeded()
+        }
         .onChange(of: card.id) {
             horizontalOffset = 0
+            verticalOffset = 0
             isCommittingAction = false
+            isTagExit = false
             store.markCurrentViewed()
         }
         .onAppear {
             store.markCurrentViewed()
+        }
+    }
+
+    private func animateTagExitIfNeeded() {
+        guard let tagAction,
+              tagAction.cardID == card.id,
+              !isCommittingAction else {
+            return
+        }
+
+        isTagExit = true
+        isCommittingAction = true
+        withAnimation(.easeIn(duration: 0.3)) {
+            verticalOffset = 1_200
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.31) {
+            onTagAnimationCompleted(tagAction)
+            horizontalOffset = 0
+            verticalOffset = 0
+            isCommittingAction = false
+            isTagExit = false
         }
     }
 
@@ -95,6 +132,9 @@ struct CardDeckView: View {
         case .unseen:
             Label("未标记", systemImage: "circle")
                 .statusPillStyle(color: .blue)
+        case .reviewed:
+            Label("已归类", systemImage: "tag.fill")
+                .statusPillStyle(color: .indigo)
         case .important:
             Label("重要", systemImage: "star.fill")
                 .statusPillStyle(color: .orange)

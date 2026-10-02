@@ -138,7 +138,7 @@
 			knownRegions = (
 				en,
 				Base,
-				zh-Hans,
+				"zh-Hans",
 			);
 			mainGroup = C00000000000000000000001;
 			productRefGroup = C00000000000000000000004 /* Products */;
@@ -267,6 +267,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = SNGZAFLSZL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = pensieve;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -294,6 +295,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = SNGZAFLSZL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = pensieve;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";

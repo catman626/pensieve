@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var showingReflections = false
     @State private var showingReflectionEditor = false
     @State private var showingTagCreator = false
+    @State private var pendingTagAction: CardTagAction?
+    @State private var isCardTransitioning = false
 
     var body: some View {
         NavigationStack {
@@ -22,7 +24,11 @@ struct ContentView: View {
                         .padding(28)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
                 } else if let card = store.currentCard {
-                    CardDeckView(card: card)
+                    CardDeckView(
+                        card: card,
+                        tagAction: pendingTagAction,
+                        onTagAnimationCompleted: completeTagAction
+                    )
                         .environmentObject(store)
                         .padding(.horizontal, 16)
                         .padding(.top, 8)
@@ -74,7 +80,9 @@ struct ContentView: View {
                 if store.currentCard != nil {
                     FloatingActionBar(
                         showingReflectionEditor: $showingReflectionEditor,
-                        showingTagCreator: $showingTagCreator
+                        showingTagCreator: $showingTagCreator,
+                        isCardTransitioning: isCardTransitioning,
+                        onTag: beginTagAction
                     )
                     .environmentObject(store)
                 }
@@ -117,6 +125,23 @@ struct ContentView: View {
         } message: {
             Text(store.errorMessage ?? "发生未知错误")
         }
+    }
+
+    private func beginTagAction(_ tag: String) {
+        guard !isCardTransitioning, let card = store.currentCard else { return }
+        isCardTransitioning = true
+        pendingTagAction = CardTagAction(tag: tag, cardID: card.id)
+    }
+
+    private func completeTagAction(_ action: CardTagAction) {
+        guard pendingTagAction?.id == action.id else { return }
+
+        if store.currentCard?.id == action.cardID {
+            store.applyTagAndAdvance(action.tag)
+        }
+
+        pendingTagAction = nil
+        isCardTransitioning = false
     }
 }
 

@@ -19,7 +19,7 @@ struct TagCreatorView: View {
                     Section("已有标签") {
                         ForEach(store.customTags, id: \.self) { tag in
                             Button {
-                                store.toggleTag(tag)
+                                store.applyTagAndAdvance(tag)
                                 dismiss()
                             } label: {
                                 HStack {

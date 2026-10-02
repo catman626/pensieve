@@ -10,6 +10,7 @@ struct NoteCard: Identifiable, Hashable, Sendable {
 
 enum CardClassification: String, Codable, Sendable {
     case unseen
+    case reviewed
     case important
     case skipped
 }
